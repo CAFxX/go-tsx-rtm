@@ -14,6 +14,16 @@ func TxEnd()
 // TxTest returns uint8(1) if the processor is executing a transactional region.
 func TxTest() (status uint8)
 
+// TxTestAndEnd checks whether we're in a transactional reason and, if so, 
+// exits the transaction reason and returns 1. Otherwise it returns 0.
+// It's equivalent to the Go code
+//
+//   s := TxTest()
+//   if s == 1 {
+//     TxEnd()
+//   }
+func TxTestAndEnd() (status uint8)
+
 // GetImm returns uint8 value from the uint32 status returned by TxBegin
 func GetImm(status uint32) uint8 {
 	return uint8(((status) >> 24) & 0xff)
