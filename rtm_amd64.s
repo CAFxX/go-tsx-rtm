@@ -1,7 +1,7 @@
 #include "textflag.h"
 
 // func txBegin() (status uint32)
-TEXT ·txBegin(SB),NOPTR|NOSPLIT,$0
+TEXT ·txBegin(SB),NOPTR|NOSPLIT,$0-16
     MOVL $0xffffffff, AX 
     XBEGIN fallback
 fallback:
