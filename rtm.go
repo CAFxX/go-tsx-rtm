@@ -5,47 +5,40 @@ package rtm
 // different to TxBeginStarted when the transaction fails.
 func TxBegin() TxBeginStatus {
 	s := txBegin()
-	return {Status(s>>24), s&0xFF}
+	return TxBeginStatus(s)
 }
 
 func txBegin() (status uint32)
 
-// TxAbort aborts transaction with the provided reason, that will
-// be available in the TxAbortExplicitReason field of the
-// TxBeginStatus returned by TxBegin
+// TxAbort aborts transaction with the specified reason, that will
+// be available by calling AbortExplicit on the TxBeginStatus returned
+// by TxBegin.
 func TxAbort(reason uint8)
 
-// TxEnd marks the end of transaction
+// TxEnd commits the transaction.
 func TxEnd()
 
-// InTx returns true if the processor is executing a transactional region.
+// InTx returns true if the processor is currently executing a transactional region.
 func InTx() bool {
 	return txTest() == 1
 }
 
 func txTest() (status uint8)
 
-type Status uint8
-
-const (
-	// TxBeginStarted is returned by TxBegin() when transaction is started
-	TxBeginStarted Status = 0
-	// TxAbortExplicit bit is set if abort caused by explicit abort instruction.
-	TxAbortExplicit = 1 << iota
-	// TxAbortRetry bit is set if the transaction may succeed on a retry
-	TxAbortRetry
-	// TxAbortConflict bit is set if another logical processor triggered a
-	// conflict with a memory address that was part of the transaction
-	TxAbortConflict
-	// TxAbortCapacity bit is set if RTM buffer overflowed
-	TxAbortCapacity
-	// TxAbortDebug is set if debug breakpoint triggered
-	TxAbortDebug
-	// TxAbortNested is set if abort occurred in a nested transaction
-	TxAbortNested
-)
-
-type TxBeginStatus struct {
-	Status Status
-	TxAbortExplicitReason uint8
-}
+// TxBeginStatus encapsulates the statuses returned by TxBegin
+type TxBeginStatus uint32
+// Started is true if the transaction is started
+func (s TxBeginStatus) Started() bool { return s == 0xFFFFFFFF }
+// AbortExplicit is true if abort caused by explicit abort instruction
+func (s TxBeginStatus) AbortExplicit() (bool, uint8) { return s & (1<<24) != 0, uint8(s & 0xFF) }
+// AbortRetry is true if the transaction may succeed on a retry
+func (s TxBeginStatus) AbortRetry() bool { return s & (1<<25) != 0 }
+// AbortConflict is true if another logical processor triggered a
+// conflict with a memory address that was part of the transaction
+func (s TxBeginStatus) AbortConflict() bool { return s & (1<<26) != 0 }
+// AbortCapacity is true if RTM buffer overflowed
+func (s TxBeginStatus) AbortCapacity() bool { return s & (1<<27) != 0 }
+// AbortDebug is true if debug breakpoint triggered
+func (s TxBeginStatus) AbortDebug() bool { return s & (1<<28) != 0 }
+// AbortNested is true if abort occurred in a nested transaction
+func (s TxBeginStatus) AbortNested() bool { return s & (1<<29) != 0 }
