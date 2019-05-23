@@ -1,25 +1,26 @@
 #include "textflag.h"
 
-// func TxBegin() (status uint32)
-TEXT ·TxBegin(SB),NOPTR|NOSPLIT,$0
-    MOVL $0xffffffff, AX
-    XBEGIN fallback // BYTE $0xc7; BYTE $0xf8; LONG $0
+// func txBegin() (status uint32)
+TEXT ·txBegin(SB),NOPTR|NOSPLIT,$0
+    MOVL $0xffffffff, AX 
+    XBEGIN fallback
 fallback:
     MOVL AX, status+0(FP) // AX will be reset on abort
     RET
 
 // func TxEnd()
 TEXT ·TxEnd(SB),NOPTR|NOSPLIT,$0
-    XEND // BYTE $0x0f; BYTE $0x01; BYTE $0xd5
+    XEND
     RET
 
-// func TxAbort() - this will return always $0xf0 on abort
-TEXT ·TxAbort(SB),NOPTR|NOSPLIT,$0
-    XABORT $0xf0 // BYTE $0xc6; BYTE $0xf8; BYTE $0x01;
+// func TxAbort(reason uint8)
+TEXT ·TxAbort(SB),NOPTR|NOSPLIT,$0-16
+    MOVB reason+0(FP), AL
+    XABORT AL
     RET
 
-// func TxTest()
-TEXT ·TxTest(SB),NOPTR|NOSPLIT,$0
-    XTEST // BYTE $0x0f; BYTE $0x01; BYTE $0xd6
+// func txTest()
+TEXT ·txTest(SB),NOPTR|NOSPLIT,$0
+    XTEST
     SETNE status+0(FP)
     RET
