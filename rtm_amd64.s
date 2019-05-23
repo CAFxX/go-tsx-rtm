@@ -18,8 +18,19 @@ TEXT ·TxAbort(SB),NOPTR|NOSPLIT,$0
     XABORT $0xf0 // BYTE $0xc6; BYTE $0xf8; BYTE $0x01;
     RET
 
-// func TxTest()
+// func TxTest() (status uint8)
 TEXT ·TxTest(SB),NOPTR|NOSPLIT,$0
     XTEST // BYTE $0x0f; BYTE $0x01; BYTE $0xd6
     SETNE status+0(FP)
+    RET
+
+// func TxTestAndEnd() (status uint8)
+TEXT ·TxTestAndEnd(SB),NOPTR|NOSPLIT,$0-1
+    XTEST
+    JE notx
+    XEND
+    MOVB $1, status+0(FP)
+    RET
+notx:
+    MOVB $0, status+0(FP)
     RET
